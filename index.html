@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>Bayes Scenario: Snipers & Soldiers</title>
+</head>
+<body>
+<div id="everything">
+  <div>You are a soldier, planning to attack an enemy position. You have a foolproof strategy for taking positions held by ordinary enemies, which will get you killed if you use it on positions held by snipers. You can call in an airstrike that will reliably devastate the enemy position, but you'd prefer not to if you don't have to. Using an airstrike will overextend the army's air support; there's a <b><span id="Apct"></span>%</b> chance this will lead to a fellow soldier's death.</div>
+  <br>
+  <br>
+  <div><b><span id="Xpct"></span>%</b> of enemies are snipers.</div>
+  <br>
+  <div>Snipers hit their target <b><span id="Ypct"></span>%</b> of the time.</div>
+  <br>
+  <div>Ordinary enemies hit their target <b><span id="Zpct"></span>%</b> of the time.</div>
+  <br>
+  <div id="hitLines"></div>
+  <br>
+  <div id="pokeLine"><button onclick="poke()">Poke a helmet on a stick out of the trench</button></div>
+  <br>
+  <div id="choiceLine"> <span id="strikeSpan"><button onclick="strike()">Call in an airstrike</button></span> <span id="chargeSpan"><button onclick="attack()">Attack without air support</button></span></div>
+  <br>
+  ---
+  <br>
+  <br>
+  <div id="showProbLine"><button onclick="show_psniper()">Show P(Sniper)</button></div>
+  <div id="probLine"></div>
+  <br>
+  <br>
+  <div id="resetLine"><button onclick="reset()">Reset Scenario</button> <button onclick="full_reset()">Reset Scenario with New Probabilities</button></div>
+  <br>
+  
+
+</div>
+
+<script>
+
+showPSniper = false
+
+function random_choice(arr) {
+    return arr[Math.floor(arr.length * Math.random())];
+}
+
+function full_reset(){
+ A = random_choice([1,3,5,10,20,30])
+ console.log(A)
+ X = random_choice([5,10,20,25,30,40,50,60])
+ Y = random_choice([60,70,80,90])
+ Z = random_choice([5,10,20,30,40])
+ 
+ document.getElementById("Apct").innerHTML = A
+ document.getElementById("Xpct").innerHTML = X
+ document.getElementById("Ypct").innerHTML = Y
+ document.getElementById("Zpct").innerHTML = Z
+ 
+ reset()
+}
+
+function reset(){
+ 
+ ended=false
+ 
+ PSniper = X/100
+ //showPSniper = false
+ 
+ if (Math.random()<PSniper){
+  sniper=true
+ }else{
+  sniper=false
+ }
+ 
+ shotsTaken = 0
+ 
+ document.getElementById("hitLines").innerHTML = ''
+ document.getElementById("pokeLine").innerHTML = '<button onclick="poke()">Poke a helmet on a stick out of the trench</button>'
+ //document.getElementById("showProbLine").innerHTML = '<button onclick="show_psniper()">Show P(Sniper)</button>'
+ if(showPSniper){
+  document.getElementById("probLine").innerHTML = "P(Sniper): "+ Math.floor(PSniper*100000)/1000 + "%"
+ }
+ document.getElementById("choiceLine").innerHTML = '<span id="strikeSpan"><button onclick="strike()">Call in an airstrike</button></span> <span id="chargeSpan"><button onclick="attack()">Attack!</button></span>'
+ 
+}
+
+function poke(){
+ if(!ended){
+ if (Math.random()>(0.03*shotsTaken)){
+  if (sniper){
+   if ((Math.random()*100)<Y){
+    hit=true
+   }else{
+    hit=false
+   }
+  }else{
+   if ((Math.random()*100)<Z){
+    hit=true
+   }else{
+    hit=false
+   }
+  }
+  if (hit){
+   document.getElementById("hitLines").innerHTML += "<div>The enemy's shot connects!</div><br>"
+  }else{
+   document.getElementById("hitLines").innerHTML += "<div>The enemy's shot misses!</div><br>"
+  }
+  
+  shotsTaken+=1
+  
+  update(hit)
+ }
+ else{
+  document.getElementById("pokeLine").innerHTML = "No shot is taken. The enemy seems to have figured out what you're doing. Time to pick a strategy."
+ }
+ }
+}
+
+function update(hit){
+ if (hit){
+  PSniper = Y*PSniper/(Y*PSniper + Z*(1-PSniper))
+ }
+ else{
+  PSniper = (100-Y)*PSniper/((100-Y)*PSniper + (100-Z)*(1-PSniper))
+ }
+ if(showPSniper){
+  document.getElementById("probLine").innerHTML = "P(Sniper): "+ Math.floor(PSniper*100000)/1000 + "%"
+ }
+}
+
+function show_psniper(){
+ showPSniper=true
+ document.getElementById("probLine").innerHTML = "P(Sniper): "+ Math.floor(PSniper*100000)/1000 + "%"
+ document.getElementById("showProbLine").innerHTML = '<button onclick="hide_psniper()">Hide P(Sniper)</button>'
+}
+
+function hide_psniper(){
+ showPSniper=false
+ document.getElementById("probLine").innerHTML = ""
+ document.getElementById("showProbLine").innerHTML = '<button onclick="show_psniper()">Show P(Sniper)</button>'
+}
+
+function strike(){
+ ended=true
+ if ((Math.random()*100)<A){
+  document.getElementById("choiceLine").innerHTML = "You call in an airstrike, and the enemy's position is obliterated. Some time later, you find out a comrade of yours was killed due to a shortage of air support."
+ }
+ else{
+  document.getElementById("choiceLine").innerHTML = "You call in an airstrike, and the enemy's position is obliterated."
+ }
+}
+
+function attack(){
+ ended=true
+ if (sniper){
+  document.getElementById("choiceLine").innerHTML = "A minute into the execution of your foolproof strategy, the sniper in the enemy position shoots you dead."
+  PSniper=1 
+ }
+ else{
+  document.getElementById("choiceLine").innerHTML = "You successfully take the enemy position without relying on air support."
+  PSniper=0
+ }
+ if(showPSniper){
+  document.getElementById("probLine").innerHTML = "P(Sniper): "+ Math.floor(PSniper*100000)/1000 + "%"
+ }
+}
+
+full_reset()
+
+</script>
+</body>
+</html>
